@@ -1,0 +1,20 @@
+.PHONY: all configure install build run
+
+run: build start
+
+all: install configure build start
+
+configure:
+	cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Debug
+
+install:
+	conan install . --output-folder=build  --build=missing --settings=build_type=Debug
+
+build:
+	cmake --build build
+
+start:
+	./build/goose
+
+clean: 
+	rm -rf build CMakeUserPresets.json
