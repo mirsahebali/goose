@@ -12,9 +12,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 find_package(glad REQUIRED)
 find_package(glfw3 REQUIRED)
 include_directories(include)
+include_directories(deps)
 
-add_executable(${PROJECT_NAME} src/window.cc app.cc)
-
+add_executable(${PROJECT_NAME} src/window.cc src/shaders.cc app.cc)
 
 target_link_libraries(${PROJECT_NAME}
     PRIVATE glad::glad
