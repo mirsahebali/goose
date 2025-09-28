@@ -1,6 +1,7 @@
 #include "shaders.h"
 #include "window.h"
 #include <fstream>
+#include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 #include <sstream>
 
@@ -96,7 +97,6 @@ Shader::~Shader() {
 }
 
 void Shader::use() { glUseProgram(ID); }
-
 void Shader::set_bool(const string &name, bool value) const {
   glUniform1i(glGetUniformLocation(ID, name.c_str()), (int)value);
 }
@@ -105,4 +105,10 @@ void Shader::set_int(const string &name, int value) const {
 }
 void Shader::set_float(const string &name, float value) const {
   glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
+}
+
+void Shader::set_mat4(const string &name, glm::mat4 matrix) {
+  uint transformation_location = glGetUniformLocation(ID, name.c_str());
+  glUniformMatrix4fv(transformation_location, 1, GL_FALSE,
+                     glm::value_ptr(matrix));
 }

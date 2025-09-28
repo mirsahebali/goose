@@ -16,5 +16,10 @@ build:
 start:
 	./build/goose
 
+tests:
+	./build/goose-tests
+
 clean: 
 	rm -rf build CMakeUserPresets.json
+
+
