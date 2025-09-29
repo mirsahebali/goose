@@ -17,6 +17,10 @@ add_executable(${PROJECT_NAME}
                 src/shaders.cc
                 src/textures.cc
                 src/image.cc
+                src/utils.cc
+                src/draw.cc
+                src/camera.cc
+                src/gsmath.cc
                 app.cc)
 
 add_executable(${PROJECT_NAME}-tests
@@ -24,6 +28,10 @@ add_executable(${PROJECT_NAME}-tests
                 src/shaders.cc
                 src/textures.cc
                 src/image.cc
+                src/draw.cc
+                src/utils.cc
+                src/camera.cc
+                src/gsmath.cc
                 tests.cc)
 
 target_link_libraries(${PROJECT_NAME}

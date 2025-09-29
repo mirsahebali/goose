@@ -1,25 +1,30 @@
+#include "app.h"
+#include "camera.h"
 #include "shaders.h"
 #include "textures.h"
-#include "window.h"
-#include <glad/glad.h>
-#include <glm/ext/quaternion_transform.hpp>
-#include <glm/ext/vector_float3.hpp>
-#include <math.h>
-
 #include <GLFW/glfw3.h>
+#include <glm/ext/quaternion_geometric.hpp>
+#include <glm/geometric.hpp>
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+float mix_value = 0.0;
 
-typedef GLFWwindow Window;
+mat4 view = mat4(1.0f);
+float radius = 10;
 
-const float ASPECT_RATIO = 16.0 / 9.0;
+vec3 camera_pos = vec3(0.0f, 0.0f, 2.0f);
+vec3 world_up = vec3(0.f, 1.f, 0.f);
+vec3 camera_front = vec3(0.0f, 0.0f, -1.0f);
+vec3 camera_target = vec3(0.0f, 0.0f, 0.0f);
 
-const uint WINDOW_WIDTH = 1000;
-const uint WINDOW_HEIGHT = WINDOW_WIDTH * (1 / ASPECT_RATIO);
+float delta_time = 0.0f;
+float last_frame_time = 0.0f;
 
-void process_input(Window *window);
+float last_mouse_x = WINDOW_WIDTH / 2.0;
+float last_mouse_y = WINDOW_HEIGHT / 2.0;
+bool first_mouse_enter = true;
+
+Camera camera(camera_pos, camera_target, camera_front, world_up,
+              Projection::Perspective, 45.0f);
 
 int main(int argc, char *argv[]) {
 
@@ -28,6 +33,15 @@ int main(int argc, char *argv[]) {
     cout << "Failed to open window" << endl;
     return -1;
   }
+  camera.set_fps_style(false);
+
+  glfwSetCursorPosCallback(window, mouse_callback);
+  glfwSetScrollCallback(window, scroll_callback);
+
+  glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+  glEnable(GL_DEPTH_TEST);
+
   Shader shader("shaders/vertex_gradient.glsl",
                 "shaders/fragment_gradient.glsl");
 
@@ -139,44 +153,36 @@ int main(int argc, char *argv[]) {
   shader.set_int("texture1", 0);
   shader.set_int("texture2", 1);
 
-  float mix_value = 0.0;
+  mat4 model = mat4(1.0f);
+  model = glm::rotate(model, glm::radians(-55.0f), vec3(1.0f, 0.0f, 0.0f));
 
-  glm::mat4 model = glm::mat4(1.0f);
-  model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+  camera.zoom = -3.0f;
 
-  float zoom_value = -3.0f;
-
-  glm::mat4 view = glm::mat4(1.0f);
-  view = glm::translate(view, glm::vec3(0.0f, 0.0f, zoom_value));
-
-  glm::mat4 projection =
-      glm::perspective(glm::radians(60.0f), ASPECT_RATIO, 0.1f, 100.0f);
-
-  glEnable(GL_DEPTH_TEST);
-
-  glm::vec3 cube_positions[] = {
-      glm::vec3(0.0f, 0.0f, 0.0f),    //
-      glm::vec3(2.0f, 10.0f, -15.0f), //
-      glm::vec3(1.5f, -2.2f, -2.5f),  //
-      glm::vec3(3.0f, 0.4f, -0.12f),  //
-      glm::vec3(7.0f, -10.0f, 7.2f),  //
-      glm::vec3(0.5f, 2.5f, -3.0f),   //
-      glm::vec3(-2.5f, 2.5f, -3.0f),  //
-      glm::vec3(-5.5f, 5.5f, -1.0f),  //
-      glm::vec3(-5.0f, -3.5f, -5.0f), //
-      glm::vec3(-7.5f, 5.5f, 0.0f),   //
+  // translation vectors for cube positions
+  vec3 cube_positions[] = {
+      vec3(0.0f, 0.0f, 0.0f),    //
+      vec3(2.0f, 10.0f, -15.0f), //
+      vec3(1.5f, -2.2f, -2.5f),  //
+      vec3(3.0f, 0.4f, -0.12f),  //
+      vec3(7.0f, -10.0f, 7.2f),  //
+      vec3(0.5f, 2.5f, -3.0f),   //
+      vec3(-2.5f, 2.5f, -3.0f),  //
+      vec3(-5.5f, 5.5f, -1.0f),  //
+      vec3(-5.0f, -3.5f, -5.0f), //
+      vec3(-7.5f, 5.5f, 0.0f),   //
   };
-
-  glm::vec3 camera_pos = glm::vec3(0.0f, 0.0f, 3.0f);
 
   while (!glfwWindowShouldClose(window)) {
 
-    float time = glfwGetTime();
+    float current_time = glfwGetTime();
+    delta_time = current_time - last_frame_time;
+    last_frame_time = current_time;
+
+    camera.set_projection(Projection::Perspective, 0.1f, 100.0f);
+    mat4 projection = camera.get_projection_matrix();
 
     // input
     process_input(window);
-
-    float green_value = sin(time) / 2.0f / 0.5f;
 
     // rendering
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -185,27 +191,6 @@ int main(int argc, char *argv[]) {
     glBindVertexArray(VAO);
 
     shader.use();
-
-    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-      if (mix_value == 1.0)
-        continue;
-      mix_value += 0.001f;
-    }
-
-    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-      if (mix_value == 0.0)
-        continue;
-      mix_value -= 0.001f;
-    }
-
-    if (glfwGetKey(window, GLFW_KEY_EQUAL) == GLFW_RELEASE) {
-      view = glm::translate(view, glm::vec3(0.0f, 0.0f, .25f));
-    }
-
-    if ((glfwGetKey(window, GLFW_KEY_MINUS) == GLFW_RELEASE)) {
-
-      view = glm::translate(view, glm::vec3(0.0f, 0.0f, -.25f));
-    }
 
     for (uint i = 0; i < 10; i++) {
       glm::mat4 model(1.0f);
@@ -219,9 +204,12 @@ int main(int argc, char *argv[]) {
         model = glm::rotate(model, glm::radians(angle),
                             glm::vec3(1.0f, 0.3f, 0.5f));
 
-        trans = glm::rotate(trans, float(time) * glm::radians(50.0f),
+        trans = glm::rotate(trans, float(current_time) * glm::radians(50.0f),
                             glm::vec3(0.0f, 0.0f, 1.0f));
       }
+
+      // view = glm::lookAt(camera_pos, camera_pos + camera_front, camera_up);
+      view = camera.get_view_matrix();
 
       shader.set_float("mix_value", .4);
       shader.set_mat4("transform", trans);
@@ -256,4 +244,42 @@ void process_input(Window *window) {
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
     glfwSetWindowShouldClose(window, true);
   }
+
+  if ((glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)) {
+    camera.process_keyboard(Direction::Forward, delta_time);
+  }
+
+  if ((glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)) {
+    camera.process_keyboard(Direction::Left, delta_time);
+  }
+
+  if ((glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)) {
+    camera.process_keyboard(Direction::Backward, delta_time);
+  }
+
+  if ((glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)) {
+    camera.process_keyboard(Direction::Right, delta_time);
+  }
+}
+
+void mouse_callback(Window *window, double x_pos_in, double y_pos_in) {
+  float x_pos = float(x_pos_in);
+  float y_pos = float(y_pos_in);
+
+  if (first_mouse_enter) {
+    last_mouse_x = x_pos;
+    last_mouse_y = y_pos;
+    first_mouse_enter = false;
+  }
+
+  float x_offset = x_pos - last_mouse_x;
+  float y_offset = last_mouse_y - y_pos;
+  last_mouse_x = x_pos;
+  last_mouse_y = y_pos;
+
+  camera.process_mouse_movement(x_offset, y_offset);
+}
+
+void scroll_callback(Window *window, double x_offset, double y_offset) {
+  camera.process_mouse_scroll(-float(y_offset));
 }

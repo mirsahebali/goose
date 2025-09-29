@@ -1,5 +1,8 @@
 #pragma once
 
+#include <glm/ext/matrix_float4x4.hpp>
+#include <glm/ext/vector_float3.hpp>
+#include <string>
 #define ASSERT_WITH_MSG(expr, msg)                                             \
   do {                                                                         \
     if (!(expr)) {                                                             \
@@ -62,3 +65,8 @@ private:
 
 Mat4 cross(Mat4 left, Mat4 right);
 Mat4 operator*(Mat4 left, Mat4 right);
+
+void print_vec3(std::string name, glm::vec3);
+void print_vec3(glm::vec3);
+void print_mat4(glm::mat4);
+void print_mat4(std::string name, glm::mat4);
