@@ -3,6 +3,7 @@
 #include <glm/ext/matrix_float4x4.hpp>
 #include <glm/ext/vector_float3.hpp>
 #include <string>
+#include <vector>
 #define ASSERT_WITH_MSG(expr, msg)                                             \
   do {                                                                         \
     if (!(expr)) {                                                             \
@@ -13,60 +14,10 @@
 
 typedef enum { SH_X, SH_Y, SH_Z } SheerDirection;
 
-class Vec4 {
-  float _x;
-  float _y;
-  float _z;
-  float _w;
-
-public:
-  Vec4(float x, float y, float z, float w);
-  Vec4(float x, float y, float z);
-
-  Vec4 operator*(float mag);
-  Vec4 operator*(Vec4 right);
-
-  void rotate(int deg);
-  void translate(int tx, int ty);
-  void scale(int sx, int sy);
-  void sheer(int sh_value, SheerDirection dir);
-
-  void print();
-
-  float x();
-  float y();
-  float z();
-};
-
-class Vec3 : public Vec4 {
-
-  float _x;
-  float _y;
-  float _z;
-
-public:
-  Vec3(float x, float y, float z);
-  Vec3(float value);
-};
-
-class Mat4 {
-public:
-  Mat4(float flat_value);
-  Mat4(Vec4 v1, Vec4 v2, Vec4 v3, Vec4 v4);
-
-  Mat4 operator*(float value);
-
-private:
-  Vec4 v1;
-  Vec4 v2;
-  Vec4 v3;
-  Vec4 v4;
-};
-
-Mat4 cross(Mat4 left, Mat4 right);
-Mat4 operator*(Mat4 left, Mat4 right);
-
 void print_vec3(std::string name, glm::vec3);
 void print_vec3(glm::vec3);
 void print_mat4(glm::mat4);
 void print_mat4(std::string name, glm::mat4);
+
+void print_circle_vertices(std::string name, std::vector<float> &);
+void print_circle_vertices(std::vector<float> &);

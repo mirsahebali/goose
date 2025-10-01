@@ -37,3 +37,22 @@ void print_mat4(glm::mat4 value) {
   }
   std::cout << "----------------" << std::endl;
 }
+
+void print_circle_vertices(std::string name, std::vector<float> &vertex_data) {
+
+  std::cout << "Value of " << name << std::endl;
+  for (int i = 0; i < vertex_data.size(); i += 3) {
+    std::cout << "x = " << vertex_data[i] << std::endl;
+    std::cout << "y = " << vertex_data[i + 1] << std::endl;
+    std::cout << "z = " << vertex_data[i + 2] << std::endl;
+  }
+}
+
+void print_circle_vertices(std::vector<float> &vertex_data) {
+
+  for (int i = 0; i < vertex_data.size(); i += 3) {
+    std::cout << "x = " << vertex_data[i] << std::endl;
+    std::cout << "y = " << vertex_data[i + 1] << std::endl;
+    std::cout << "z = " << vertex_data[i + 2] << std::endl;
+  }
+}

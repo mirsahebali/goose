@@ -1,6 +1,6 @@
 #include "camera.h"
 #include "gsmath.h"
-#include "utils.h"
+
 #include <glm/geometric.hpp>
 
 Camera::Camera(vec3 position, vec3 target, vec3 front, vec3 world_up,
