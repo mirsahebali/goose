@@ -1,13 +1,19 @@
+// goose includes
 #include "app.h"
-#include "camera.h"
 #include "colors.h"
 #include "draw.h"
 #include "shaders.h"
 #include "textures.h"
 #include "window.h"
+
+// external includes
 #include <GLFW/glfw3.h>
 #include <glm/ext/quaternion_geometric.hpp>
 #include <glm/geometric.hpp>
+
+#include <imgui.h>
+#include <imgui/backends/imgui_impl_glfw.h>
+#include <imgui/backends/imgui_impl_opengl3.h>
 
 float mix_value = 0.0;
 
@@ -28,14 +34,23 @@ bool first_mouse_enter = true;
 
 int main(int argc, char *argv[]) {
 
+  IMGUI_CHECKVERSION();
+  ImGui::CreateContext();
+  ImGuiIO &io = ImGui::GetIO();
+  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+  io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
   Window *window = init_window("Goose", WINDOW_WIDTH, WINDOW_HEIGHT, true);
   if (window == NULL) {
     cout << "Failed to open window" << endl;
     return -1;
   }
 
-  glfwSetCursorPosCallback(window, mouse_callback);
-  glfwSetScrollCallback(window, scroll_callback);
+  ImGui_ImplGlfw_InitForOpenGL(window, true);
+  ImGui_ImplOpenGL3_Init();
+
+  // glfwSetCursorPosCallback(window, mouse_callback);
+  // glfwSetScrollCallback(window, scroll_callback);
 
   // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
@@ -66,7 +81,14 @@ int main(int argc, char *argv[]) {
   TriangleRenderer triangle_renderer(triangle_shader);
   QuadRenderer quad_renderer(quad_shader);
 
+  char buf[100];
+  float f = 0.0;
+
   while (!glfwWindowShouldClose(window)) {
+
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
 
     float current_time = glfwGetTime();
     delta_time = current_time - last_frame_time;
@@ -87,6 +109,8 @@ int main(int argc, char *argv[]) {
 
     quad_renderer.draw2d(0.0f, 0.0f, 0.8f, 0.8f, WHITE, true);
 
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     glfwSwapBuffers(window);
     glfwPollEvents();
   }
@@ -94,6 +118,9 @@ int main(int argc, char *argv[]) {
   delete line_shader;
   delete circle_shader;
 
+  ImGui_ImplOpenGL3_Shutdown();
+  ImGui_ImplGlfw_Shutdown();
+  ImGui::DestroyContext();
   glfwTerminate();
   return 0;
 }

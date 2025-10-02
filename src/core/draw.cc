@@ -1,9 +1,7 @@
-
 #include "draw.h"
 #include "window.h"
 #include <glm/ext.hpp>
 #include <glm/trigonometric.hpp>
-#include <iostream>
 #include <vector>
 
 LineRenderer::LineRenderer(Shader *shader) : shader(shader) {
