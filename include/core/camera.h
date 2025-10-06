@@ -1,5 +1,6 @@
 #pragma once
 
+#include <GL/gl.h>
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_float4x4.hpp>
 #include <glm/ext/matrix_transform.hpp>
@@ -8,8 +9,6 @@
 #include <glm/ext/vector_float3.hpp>
 #include <glm/geometric.hpp>
 #include <glm/trigonometric.hpp>
-
-#include "window.h"
 
 using glm::cos;
 using glm::mat4;
@@ -43,6 +42,9 @@ class Camera {
   float max_fov = 45;
 
   float aspect_ratio;
+  int window_width;
+  int window_height;
+
   bool is_fps_style = false;
 
 public:
@@ -51,7 +53,8 @@ public:
   float zoom;
 
   Camera(vec3 position, vec3 target, vec3 front, vec3 up, Projection projection,
-         float fov);
+         float fov, int window_width, int window_height);
+  Camera() = default;
 
   mat4 get_view_matrix() const;
   mat4 get_projection_matrix() const;

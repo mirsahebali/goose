@@ -1,3 +1,5 @@
+#include "glad/glad.h"
+
 #include "shaders.h"
 #include "window.h"
 #include <fstream>
@@ -47,7 +49,16 @@ Shader::Shader(const char *vertex_path, const char *fragment_path) {
   char info_log[512];
 
   vertex = glCreateShader(GL_VERTEX_SHADER);
+  if (vertex == 0) {
+    std::cerr << "Failed to create shader!" << std::endl;
+    return;
+  }
   glShaderSource(vertex, 1, &vertex_shader_source_code, NULL);
+  GLenum err;
+  if ((err = glGetError()) != GL_NO_ERROR) {
+    std::cerr << "OpenGL error: " << err << std::endl;
+  }
+
   glCompileShader(vertex);
 
   glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
@@ -96,7 +107,13 @@ Shader::~Shader() {
   glDeleteProgram(ID);
 }
 
-void Shader::use() { glUseProgram(ID); }
+void Shader::use() {
+  glUseProgram(ID);
+  GLenum error;
+  while ((error = glGetError()) != GL_NO_ERROR) {
+    printf("OpenGL Error before glUseProgram: %u\n", error);
+  }
+}
 void Shader::set_bool(const string &name, bool value) const {
   glUniform1i(glGetUniformLocation(ID, name.c_str()), (int)value);
 }

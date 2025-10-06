@@ -1,7 +1,5 @@
 #pragma once
 
-#include "draw.h"
-
 #define RED Color{.r = 1.0f, .g = 0.0f, .b = 0.0f, .a = 1.0f} // Red (opaque)
 #define GREEN                                                                  \
   Color{.r = 0.0f, .g = 1.0f, .b = 0.0f, .a = 1.0f}            // Green (opaque)

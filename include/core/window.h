@@ -1,21 +1,24 @@
 #pragma once
 
-#include <glad/glad.h>
-
-#include <GLFW/glfw3.h>
 #include <iostream>
 #include <string>
+
+#include <GLFW/glfw3.h>
 
 using std::cout;
 using std::endl;
 using std::string;
 
-typedef GLFWwindow Window;
+typedef struct WindowConfig {
+  std::string name;
+  float aspect_ratio;
+  int width;
+  int height;
+  bool floating;
+} WindowConfig;
 
-// const float ASPECT_RATIO = 16.0 / 9.0;
-const float ASPECT_RATIO = 1.0f;
+extern WindowConfig window_cfg;
 
-const uint WINDOW_WIDTH = 1000;
-const uint WINDOW_HEIGHT = WINDOW_WIDTH * (1 / ASPECT_RATIO);
+typedef GLFWwindow WindowPtr;
 
-Window *init_window(string title, int width, int height, bool floating);
+WindowPtr *init_window(string title, int width, int height, bool floating);

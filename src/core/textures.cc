@@ -1,3 +1,5 @@
+#include "glad/glad.h"
+
 #include "textures.h"
 #include "window.h"
 #include <optional>

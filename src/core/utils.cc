@@ -56,3 +56,11 @@ void print_circle_vertices(std::vector<float> &vertex_data) {
     std::cout << "z = " << vertex_data[i + 2] << std::endl;
   }
 }
+
+float pixel_to_ndc(int pixel_value, int max_pixel_value) {
+  return pixel_value / (max_pixel_value / 2.0);
+}
+
+int ndc_to_pixel(float ndc, int max_pixel_value) {
+  return ndc * (max_pixel_value / 2.0);
+}

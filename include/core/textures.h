@@ -1,9 +1,10 @@
 #pragma once
 
-#include "window.h"
 #include <array>
 #include <optional>
 #include <string>
+
+#include "window.h"
 
 using std::array;
 using std::optional;

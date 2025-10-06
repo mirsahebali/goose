@@ -1,13 +1,18 @@
+#include "window.h"
+
 #include "camera.h"
 #include "gsmath.h"
 
 #include <glm/geometric.hpp>
 
 Camera::Camera(vec3 position, vec3 target, vec3 front, vec3 world_up,
-               Projection projection, float fov) {
-  this->position = position;
-  this->target = target;
-  this->projection = projection;
+               Projection projection, float fov, int window_width,
+               int window_height)
+    : position(position), target(target), projection(projection), front(front),
+      world_up(world_up), yaw(-90.0f), pitch(0.0f), sensitivity(0.1f),
+      // fov and zoom could be considered same thing
+      fov(fov), zoom(fov), speed(2.5f),
+      aspect_ratio(float(window_width) / window_height) {
 
   // setting projection matrix
   switch (projection) {
@@ -17,26 +22,16 @@ Camera::Camera(vec3 position, vec3 target, vec3 front, vec3 world_up,
     break;
   case Orthographic:
     projection_matrix = glm::ortho(
-        -float(WINDOW_HEIGHT) / 2.0f, float(WINDOW_HEIGHT) / 2.0f,
-        -float(WINDOW_WIDTH) / 2, -float(WINDOW_WIDTH) / 2, 0.1f, 100.0f);
+        -float(window_height) / 2.0f, float(window_height) / 2.0f,
+        -float(window_width) / 2, -float(window_width) / 2, 0.1f, 100.0f);
     break;
   }
 
-  this->front = front;
   this->direction = glm::normalize(position - target);
   this->right = glm::normalize(glm::cross(world_up, this->direction));
 
   this->world_up = world_up;
   this->up = glm::cross(this->direction, this->right);
-
-  this->fov = fov;
-  this->yaw = -90.0f;
-  this->pitch = 0.0f;
-  this->sensitivity = 0.1f;
-  // fov and zoom could be considered same thing
-  this->zoom = fov;
-  this->speed = 2.5f;
-  this->aspect_ratio = 16.0f / 9;
 }
 
 void Camera::set_fps_style(bool value) { this->is_fps_style = value; }
@@ -117,8 +112,8 @@ void Camera::set_projection(Projection projection, float z_near, float z_far) {
     break;
   case Orthographic:
     projection_matrix = glm::ortho(
-        -float(WINDOW_HEIGHT) / 2.0f, float(WINDOW_HEIGHT) / 2.0f,
-        -float(WINDOW_WIDTH) / 2, -float(WINDOW_WIDTH) / 2, z_near, z_far);
+        -float(window_height) / 2.0f, float(window_height) / 2.0f,
+        -float(window_width) / 2, -float(window_width) / 2, z_near, z_far);
     break;
   }
 }
