@@ -39,7 +39,10 @@ AppState::AppState()
       triangle_renderer(NEW_PRIMITIVE_SHADER, window_cfg.width,
                         window_cfg.height),
       quad_renderer(NEW_PRIMITIVE_SHADER, window_cfg.width, window_cfg.height),
-      line_renderer(NEW_PRIMITIVE_SHADER, window_cfg.width, window_cfg.height) {
+      line_renderer(NEW_PRIMITIVE_SHADER, window_cfg.width, window_cfg.height),
+      font_renderer(
+          new Shader("shaders/font_vertex.glsl", "shaders/font_fragment.glsl"),
+          "assets/font/ToThePoint.ttf", window_cfg.width, window_cfg.height) {
   background_color = WHITE;
   animation = 0;
 }
@@ -56,13 +59,17 @@ void CuminApp::clear_screen() {
 void CuminApp::render() {
   clear_screen();
 
+  // Color color)
+  state.line_renderer.draw2d(-100, 0, 1000, 100, 0, BLUE);
+  state.font_renderer.draw("Hello, OpenGL", 0, 0, 0.5, BLACK);
+  state.font_renderer.draw("Hello, OpenGL 2", WINDOW_WIDTH / 2, 0, 0.5, BLACK);
   draw_grid(10);
 }
 
 void CuminApp::draw_grid(int pixel_size) {
-  // draw rows
-  for (int i = -window_cfg.width / 2; i < window_cfg.width / 2; i++) {
-  }
+  // // draw rows
+  // for (int i = -window_cfg.width / 2; i < window_cfg.width / 2; i++) {
+  // }
 }
 
 void CuminApp::process_event(AppEvent e) {

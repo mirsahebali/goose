@@ -10,13 +10,17 @@
 
 #include "window.h"
 
+#include <GL/gl.h>
 #include <GL/glext.h>
-#include <fstream>
+#include <cstdio>
 #include <glm/ext.hpp>
+#include <glm/ext/vector_int2.hpp>
 #include <glm/trigonometric.hpp>
-#include <optional>
 #include <sys/types.h>
 #include <vector>
+
+#include "freetype2/ft2build.h"
+#include FT_FREETYPE_H
 
 PrimitiveRenderer::PrimitiveRenderer(Shader *_shader, int _window_width,
                                      int _window_height)
@@ -24,7 +28,7 @@ PrimitiveRenderer::PrimitiveRenderer(Shader *_shader, int _window_width,
       window_width(_window_width),
       aspect_ratio(float(_window_width) / _window_height) {}
 
-PrimitiveRenderer::~PrimitiveRenderer() { glDeleteShader(shader->ID); }
+PrimitiveRenderer::~PrimitiveRenderer() {}
 
 LineRenderer::LineRenderer(Shader *_shader, int _window_width,
                            int _window_height)
@@ -61,6 +65,7 @@ void LineRenderer::draw2d(int pixel_start_x, int pixel_start_y, int pixel_end_x,
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
   shader->use();
+  shader->set_mat4("projections", glm::mat4(1.0));
   shader->set_vec4("inputColor", glm::vec4(color.r, color.g, color.b, color.a));
 
   render_lines();
@@ -83,13 +88,13 @@ void LineRenderer::draw2d_ndc(float start_x, float start_y, float end_x,
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
   shader->use();
+  shader->set_mat4("projections", glm::mat4(1.0));
   shader->set_vec4("inputColor", glm::vec4(color.r, color.g, color.b, color.a));
 
   render_lines();
 }
 
 void LineRenderer::render_lines() {
-
   glDrawArrays(GL_LINES, 0, 2);
   glBindVertexArray(0);
 }
@@ -184,6 +189,7 @@ void CircleRenderer::draw2d(int center_x, int center_y, uint radius,
 
   shader->use();
 
+  shader->set_mat4("projections", glm::mat4(1.0));
   shader->set_vec4("inputColor", glm::vec4(color.r, color.g, color.b, color.a));
   render_circles(is_filled);
 }
@@ -202,6 +208,7 @@ void CircleRenderer::draw2d_ndc(float center_x, float center_y, float radius,
 
   shader->use();
 
+  shader->set_mat4("projections", glm::mat4(1.0));
   shader->set_vec4("inputColor", glm::vec4(color.r, color.g, color.b, color.a));
   render_circles(is_filled);
 }
@@ -277,6 +284,7 @@ void TriangleRenderer::draw2d_ndc(float v1_x, float v1_y, float v1_z,
 
   shader->use();
 
+  shader->set_mat4("projections", glm::mat4(1.0));
   shader->set_vec4("inputColor", glm::vec4(color.r, color.g, color.b, color.a));
   render_triangles(is_filled);
 }
@@ -307,6 +315,7 @@ void TriangleRenderer::draw2d(int v1_x, int v1_y, int v1_z, int v2_x, int v2_y,
 
   shader->use();
 
+  shader->set_mat4("projections", glm::mat4(1.0));
   shader->set_vec4("inputColor", glm::vec4(color.r, color.g, color.b, color.a));
   render_triangles(is_filled);
 }
@@ -393,6 +402,7 @@ void QuadRenderer::draw2d(int pixel_start_x, int pixel_start_y, int pixel_width,
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
   shader->use();
+  shader->set_mat4("projections", glm::mat4(1.0));
   shader->set_vec4("inputColor", glm::vec4(color.r, color.g, color.b, color.a));
   render_quad(is_filled);
 }
@@ -419,6 +429,7 @@ void QuadRenderer::draw2d_ndc(float start_x, float start_y, float width,
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
   shader->use();
+  shader->set_mat4("projections", glm::mat4(1.0));
   shader->set_vec4("inputColor", glm::vec4(color.r, color.g, color.b, color.a));
   render_quad(is_filled);
 }
@@ -441,86 +452,132 @@ QuadRenderer::~QuadRenderer() {
   glDeleteBuffers(1, &EBO);
 }
 
-FontRenderer::FontRenderer(Shader *shader, std::string &font_path,
+FontRenderer::FontRenderer(Shader *shader, const char *font_path,
                            int _window_width, int _window_height)
     : PrimitiveRenderer(shader, _window_width, _window_height) {
-  std::ifstream input_file_stream(font_path, std::ios::binary);
-
-  input_file_stream.seekg(0, std::ios::end);
-
-  auto &&size = input_file_stream.tellg();
-
-  input_file_stream.seekg(0, std::ios::beg);
-
-  u_int8_t *font_data_buf = new u_int8_t[static_cast<size_t>(size)];
-
-  input_file_stream.read((char *)font_data_buf, size);
-
-  int32_t font_count = stbtt_GetNumberOfFonts(font_data_buf);
-
-  if (font_count == -1)
-    std::cerr << "The font file doesn't correspond to valid font data\n";
-  else
-    std::cout << "The File " << font_path << " contains " << font_count
-              << " font(s)\n";
-
-  u_int32_t font_atlas_width = 1024;
-  u_int32_t font_atlas_height = 1024;
-
-  u_int8_t *font_atlas_bitmap =
-      new u_int8_t[font_atlas_width * font_atlas_height];
-
-  const u_int32_t code_point_of_first_char = 32;
-  const u_int32_t chars_to_include_in_font_atlas = 95;
-
-  float font_size = 64.0f;
-
-  stbtt_packedchar packed_chars[chars_to_include_in_font_atlas];
-  stbtt_aligned_quad aligned_quads[chars_to_include_in_font_atlas];
-
-  stbtt_pack_context ctx;
-
-  stbtt_PackBegin(&ctx, (unsigned char *)font_atlas_bitmap, font_atlas_width,
-                  font_atlas_height, 0, 1, nullptr);
-
-  stbtt_PackFontRange(&ctx, font_data_buf, 0, font_size,
-                      code_point_of_first_char, chars_to_include_in_font_atlas,
-                      packed_chars);
-
-  stbtt_PackEnd(&ctx);
-
-  for (int i = 0; i < chars_to_include_in_font_atlas; i++) {
-    float unused_x, unused_y;
-
-    stbtt_GetPackedQuad(packed_chars, font_atlas_width, font_atlas_height, i,
-                        &unused_x, &unused_y, &aligned_quads[i], 0);
+  FT_Library ft;
+  if (FT_Init_FreeType(&ft)) {
+    std::cout << "ERROR::FREETYPE:: Could not initialize freetype library"
+              << std::endl;
   }
 
-  u_int32_t font_atlas_texture_id;
+  FT_Face font_face;
+  if (FT_New_Face(ft, font_path, 0, &font_face)) {
+    std::cout << "ERROR::FREETYPE:: Failed to load font" << std::endl;
+    return;
+  }
 
-  glGenTextures(1, &font_atlas_texture_id);
-  glBindTexture(GL_TEXTURE_2D, font_atlas_texture_id);
+  FT_Set_Pixel_Sizes(font_face, 0, 48);
 
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, font_atlas_width, font_atlas_height, 0,
-               GL_RED, GL_UNSIGNED_BYTE, font_atlas_bitmap);
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  for (u_char ch = 0; ch < 128; ch++) {
+    if (FT_Load_Char(font_face, ch, FT_LOAD_RENDER)) {
+      std::cout << "ERROR::FREETYPE:: Failed to load GLYPH: " << char(ch)
+                << std::endl;
+      continue;
+    }
 
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    unsigned int bitmap_width = font_face->glyph->bitmap.width;
+    unsigned int bitmap_rows = font_face->glyph->bitmap.rows;
+    unsigned char *bitmap_buffer = font_face->glyph->bitmap.buffer;
+
+    glGenTextures(1, &texture_id);
+    glBindTexture(GL_TEXTURE_2D, texture_id);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, bitmap_width, bitmap_rows, 0, GL_RED,
+                 GL_UNSIGNED_BYTE, bitmap_buffer);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    Character character{
+        .texture_id = texture_id,
+        .size = glm::ivec2(bitmap_width, bitmap_rows),
+        .bearing = glm::ivec2(font_face->glyph->bitmap_left,
+                              font_face->glyph->bitmap_top),
+        .advance = static_cast<uint>(font_face->glyph->advance.x),
+    };
+
+    characters.insert(std::pair<char, Character>(char(ch), character));
+  }
+
+  FT_Done_Face(font_face);
+  FT_Done_FreeType(ft);
+
+  std::cout << "Processed Font Glyphs from " << font_path << std::endl;
+
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+  glGenVertexArrays(1, &VAO);
+  glGenBuffers(1, &VBO);
+  glBindVertexArray(VAO);
+
+  glBindBuffer(GL_ARRAY_BUFFER, VBO);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 4 * 6, NULL, GL_DYNAMIC_DRAW);
+
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
+
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glBindVertexArray(0);
 
   glBindTexture(GL_TEXTURE_2D, 0);
-
-  delete[] font_atlas_bitmap;
-  delete[] font_data_buf;
 }
 
-void FontRenderer::draw(std::string &text, int width, int height, int font_size,
+void FontRenderer::draw(std::string text, int x_pos, int y_pos, float scale,
                         Color color) {
 
-  for (char ch : text) {
+  shader->use();
+
+  shader->set_mat4("projections",
+                   glm::ortho(-float(window_width) / 2, float(window_width) / 2,
+                              -float(window_height) / 2,
+                              float(window_height) / 2));
+  shader->set_vec3("textColor", glm::vec3(color.r, color.g, color.b));
+  glActiveTexture(GL_TEXTURE0);
+  glBindVertexArray(VAO);
+  // float x = pixel_to_ndc(x_pos, window_width);
+  // float y = pixel_to_ndc(y_pos, window_height);
+
+  float x = x_pos;
+  float y = y_pos;
+
+  // iterate through all characters
+  for (char c : text) {
+    Character ch = characters[c];
+
+    float x_final_pos = x + ch.bearing.x * scale;
+    float y_final_pos = y - (ch.size.y - ch.bearing.y) * scale;
+
+    float w = ch.size.x * scale;
+    float h = ch.size.y * scale;
+
+    // here we construct quads with two triangle and it's texture vertices
+    // indices
+    float vertices[6][4] = {
+        {x_final_pos, y_final_pos + h, 0.0f, 0.0f},
+        {x_final_pos, y_final_pos, 0.0f, 1.0f},
+        {x_final_pos + w, y_final_pos, 1.0f, 1.0f},
+
+        {x_final_pos, y_final_pos + h, 0.0f, 0.0f},
+        {x_final_pos + w, y_final_pos, 1.0f, 1.0f},
+        {x_final_pos + w, y_final_pos + h, 1.0f, 0.0f},
+    };
+
+    glBindTexture(GL_TEXTURE_2D, ch.texture_id);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+
+    x += (ch.advance >> 6) * scale;
   }
+  glBindVertexArray(0);
+  glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void FontRenderer::render_text() {}

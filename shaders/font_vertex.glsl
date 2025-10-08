@@ -1,10 +1,12 @@
 #version 330 core
 
-layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec4 aColor;
-layout (location = 2) in vec2 aTextureCoord;
+layout (location = 0) in vec4 vertex; // <vec2 position, vec2 texture_coordinates>
+out vec2 TextureCoord;
+
+uniform mat4 projections;
 
 void main(){
-  gl_Position = vec4(aPos, 1.0);
+  gl_Position = projections * vec4(vertex.xy, 0.0, 1.0);
+  TextureCoord = vertex.zw;
 }
 

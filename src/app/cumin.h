@@ -2,6 +2,7 @@
 
 #include <GLFW/glfw3.h>
 
+#include <X11/X.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <imgui.h>
@@ -17,6 +18,7 @@ public:
   QuadRenderer quad_renderer;
   CircleRenderer circle_renderer;
   TriangleRenderer triangle_renderer;
+  FontRenderer font_renderer;
   Color background_color;
   AppState();
 };

@@ -42,6 +42,7 @@ set(APP_CORE
     src/core/camera.cc
     src/core/app.cc
     src/core/gsmath.cc
+    src/core/truetype.cc
 )
 
 # ImGui source files
@@ -58,6 +59,7 @@ set(IMGUI_SOURCES
 find_package(glad REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(glm REQUIRED)
+find_package(freetype REQUIRED)
 
 # === Core Library ===
 add_library(goose-core
@@ -77,6 +79,7 @@ target_include_directories(goose-core
 target_link_libraries(goose-core
     PRIVATE glad::glad
     PUBLIC glfw glm::glm
+    Freetype::Freetype
 )
 
 # === Executables ===

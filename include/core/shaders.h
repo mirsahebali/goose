@@ -19,4 +19,5 @@ public:
 
   void set_mat4(const std::string &name, glm::mat4 matrix);
   void set_vec4(const std::string &name, glm::vec4 matrix);
+  void set_vec3(const std::string &name, glm::vec3 matrix);
 };

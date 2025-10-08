@@ -134,3 +134,7 @@ void Shader::set_vec4(const string &name, glm::vec4 value) {
   uint vec4_location = glGetUniformLocation(ID, name.c_str());
   glUniform4fv(vec4_location, 1, glm::value_ptr(value));
 }
+void Shader::set_vec3(const string &name, glm::vec3 value) {
+  uint vec3_location = glGetUniformLocation(ID, name.c_str());
+  glUniform3fv(vec3_location, 1, glm::value_ptr(value));
+}

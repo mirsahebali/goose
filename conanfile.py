@@ -11,3 +11,4 @@ class GooseRecipie(ConanFile):
         self.requires("glfw/3.4")
         self.requires("glm/1.0.1")
         self.requires("imgui/1.92.2b")
+        self.requires("freetype/2.13.3")
