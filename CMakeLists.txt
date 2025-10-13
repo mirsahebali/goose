@@ -31,6 +31,21 @@ file(DOWNLOAD
     ${CMAKE_SOURCE_DIR}/deps/stb_truetype.h
 )
 
+file(DOWNLOAD
+    "https://raw.githubusercontent.com/juliettef/IconFontCppHeaders/refs/heads/main/IconsFontAwesome5.h"
+    ${CMAKE_SOURCE_DIR}/deps/IconsFontAwesome5.h
+)
+
+file(DOWNLOAD
+  "https://raw.githubusercontent.com/juliettef/IconFontCppHeaders/refs/heads/main/IconsLucide.h"
+  ${CMAKE_SOURCE_DIR}/deps/IconsLucide.h
+)
+
+file(DOWNLOAD
+  "https://raw.githubusercontent.com/juliettef/IconFontCppHeaders/refs/heads/main/IconsCodicons.h"
+  ${CMAKE_SOURCE_DIR}/deps/IconsCodicons.h
+)
+
 # Core source files
 set(APP_CORE
     src/core/window.cc
@@ -43,6 +58,7 @@ set(APP_CORE
     src/core/app.cc
     src/core/gsmath.cc
     src/core/truetype.cc
+    src/core/sprites.cc
 )
 
 # ImGui source files

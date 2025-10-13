@@ -7,25 +7,25 @@
 #include <vector>
 
 typedef struct {
-  float x;
-  float y;
+  int x;
+  int y;
 } Vec2;
 
 typedef struct {
-  float x;
-  float y;
-  float z;
+  int x;
+  int y;
+  int z;
 } Vec3;
 
 typedef struct {
-  float width;
-  float height;
+  int width;
+  int height;
 } Size2D;
 
 typedef struct {
-  float width;
-  float height;
-  float depth;
+  int width;
+  int height;
+  int depth;
 } Size3D;
 
 typedef struct {
@@ -58,9 +58,11 @@ protected:
   int window_width;
   int window_height;
   float aspect_ratio;
+  glm::mat4 *projection_matrix;
 
 public:
-  PrimitiveRenderer(Shader *_shader, int _window_width, int _window_height);
+  PrimitiveRenderer(Shader *_shader, int _window_width, int _window_height,
+                    glm::mat4 *projection_matrix);
   virtual ~PrimitiveRenderer();
 };
 
@@ -74,7 +76,8 @@ private:
   void render_lines();
 
 public:
-  LineRenderer(Shader *_shader, int _window_width, int _window_height);
+  LineRenderer(Shader *_shader, int _window_width, int _window_height,
+               glm::mat4 *projection_matrix);
 
   void draw(Vec3 start, Vec3 end, float thickness, Color color);
 
@@ -96,7 +99,7 @@ class CircleRenderer : public PrimitiveRenderer {
 
 public:
   CircleRenderer(Shader *shader, int num_segments, int _window_width,
-                 int _window_height);
+                 int _window_height, glm::mat4 *projection_matrix);
 
   void draw(Vec3 center, float radius, Color color, bool is_filled);
 
@@ -113,12 +116,13 @@ class TriangleRenderer : public PrimitiveRenderer {
   void render_triangles(bool is_filled);
 
 public:
-  TriangleRenderer(Shader *shader, int _window_width, int _window_height);
+  TriangleRenderer(Shader *shader, int _window_width, int _window_height,
+                   glm::mat4 *projection_matrix);
 
   void draw(Vec3 v1, Vec3 v2, Vec3 v3, Color color, bool is_filled);
 
-  void draw2d(int v1_x, int v1_y, int v1_z, int v2_x, int v2_y, int v2_z,
-              int v3_x, int v3_y, int v3_z, Color color, bool is_filled);
+  void draw2d(int v1_x, int v1_y, int v2_x, int v2_y, int v3_x, int v3_y,
+              Color color, bool is_filled);
 
   void draw2d_ndc(float v1_x, float v1_y, float v1_z, float v2_x, float v2_y,
                   float v2_z, float v3_x, float v3_y, float v3_z, Color color,
@@ -133,7 +137,8 @@ class QuadRenderer : public PrimitiveRenderer {
   void render_quad(bool is_filled);
 
 public:
-  QuadRenderer(Shader *shader, int _window_width, int _window_height);
+  QuadRenderer(Shader *shader, int _window_width, int _window_height,
+               glm::mat4 *projection_matrix);
 
   void draw(Vec3 origin, Vec3 volume, Color color, bool is_filled);
 
@@ -161,7 +166,7 @@ class FontRenderer : public PrimitiveRenderer {
 
 public:
   FontRenderer(Shader *shader, const char *path, int _window_width,
-               int _window_height);
+               int _window_height, glm::mat4 *projection_matrix);
 
   void draw(std::string text, int x, int y, float scale, Color color);
 

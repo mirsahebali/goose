@@ -66,11 +66,11 @@ public:
   WindowConfig window;
   Event current_event;
 
-  void on_startup();
   void begin_rendering();
   void end_rendering();
   void run();
 
+  virtual void on_startup();
   virtual void render();
   virtual void on_update(float ns);
   virtual void process_event(Event);
